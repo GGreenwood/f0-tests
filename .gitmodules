@@ -1,0 +1,6 @@
+[submodule "unicore-mx"]
+	path = unicore-mx
+	url = git@github.com:insane-adding-machines/unicore-mx.git
+[submodule "unicore-mx-examples"]
+	path = unicore-mx-examples
+	url = git@github.com:insane-adding-machines/unicore-mx-examples.git
