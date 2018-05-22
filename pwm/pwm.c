@@ -32,32 +32,21 @@
 
 static void clock_setup(void) {
     rcc_clock_setup_in_hsi48_out_48mhz();
-}
-
-// Enable peripheral timers
-static void timer_setup(void) {
     rcc_periph_clock_enable(RCC_GPIOA);
     rcc_periph_clock_enable(RCC_TIM3);
 }
 
 static void gpio_setup(void) {
-    
-}
-
-int main(void)
-{
-    int i;
-
-    clock_setup();
-
-
     // Set GPIO outputs
-    gpio_set_output_options(GPIOA, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, GPIO6);
+    gpio_set_output_options(GPIOA, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, GPIO4);
 
     // Connect PA6 to its alternate function, TIM_CH1
     gpio_mode_setup(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO6);
     gpio_set_af(GPIOA, GPIO_AF1, GPIO6);   // Set AF1(TIM3_CH1) of PA1
+}
 
+// Enable peripheral timers
+static void timer_setup(void) {
     // Set up TIM3
     timer_reset(TIM3);
     timer_set_mode(TIM3,            // Operate on TIM3
@@ -79,6 +68,15 @@ int main(void)
 
     // Enable the timer
     timer_enable_counter(TIM3);
+}
+
+int main(void)
+{
+    int i;
+
+    clock_setup();
+    gpio_setup();
+    timer_setup();
 
     // Blink the LED (PA1)
     gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO1);
