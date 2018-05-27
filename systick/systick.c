@@ -27,16 +27,18 @@
 /* set STM32 to clock by 48MHz from HSI oscillator */
 static void clock_setup(void)
 {
-    //rcc_clock_setup_in_hsi_out_48mhz();
     rcc_clock_setup_in_hsi48_out_48mhz();
-
-    /* Enable clocks to the GPIO subsystems */
-    rcc_periph_clock_enable(RCC_GPIOA);
 }
 
 static void gpio_setup(void)
 {
+    /* Enable clocks to the GPIO subsystems */
+    rcc_periph_clock_enable(RCC_GPIOA);
+    gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO6);
     gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO4);
+
+    //rcc_periph_clock_enable(RCC_GPIOB);
+    //gpio_mode_setup(GPIOB, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO3);
 }
 
 /*
@@ -59,20 +61,19 @@ static void systick_setup(int xms)
 /* Called when systick fires */
 void sys_tick_handler(void)
 {
-    gpio_set(GPIOA, GPIO4);
+    gpio_toggle(GPIOA, GPIO6);
 }
-
 
 int main(void)
 {
     clock_setup();
     gpio_setup();
 
-    /* 125ms ticks =>  250ms period => 4Hz blinks */
-    systick_setup(2000);
+    systick_setup(100);
 
     /* Do nothing in main loop */
     while (1) {
         gpio_toggle(GPIOA, GPIO4);
+        __asm__("nop");
     }
 }

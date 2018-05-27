@@ -27,19 +27,19 @@ static void clock_setup(void)
 static void gpio_setup(void)
 {
     /* Enable GPIOA clock. */
-    rcc_periph_clock_enable(RCC_GPIOA);
+    rcc_periph_clock_enable(RCC_GPIOB);
 
     /* Set GPIO1 in PORTA to 'output push-pull'. */
-    gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO4);
+    gpio_mode_setup(GPIOB, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO3);
 }
 
 static void button_setup(void)
 {
     /* Enable GPIOA clock. */
-    rcc_periph_clock_enable(RCC_GPIOA);
+    rcc_periph_clock_enable(RCC_GPIOB);
 
     /* Set GPIO0 (in GPIO port A) to 'input open-drain'. */
-    gpio_mode_setup(GPIOA, GPIO_MODE_INPUT, GPIO_PUPD_NONE, GPIO0);
+    gpio_mode_setup(GPIOB, GPIO_MODE_INPUT, GPIO_PUPD_NONE, GPIO3);
 }
 
 int main(void)
@@ -51,7 +51,7 @@ int main(void)
     gpio_setup();
 
     while (1) {
-        gpio_toggle(GPIOA, GPIO4);
+        gpio_toggle(GPIOB, GPIO3);
 
         /* Upon button press, blink more slowly. */
         /*if (gpio_get(GPIOA, GPIO0)) {
@@ -59,10 +59,9 @@ int main(void)
                 __asm__("nop");
             }
         }
-	*/
+        */
 
         for (i = 0; i < 300000; i++) {		/* Wait a bit. */
-            __asm__("nop");
         }
     }
 

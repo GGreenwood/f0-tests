@@ -17,7 +17,7 @@
 ## along with this library.  If not, see <http://www.gnu.org/licenses/>.
 ##
 
-BINARY = systick_blink
+BINARY = systick
 
 UCMX_DIR = ../unicore-mx
 LDSCRIPT = ../stm32f042f6.ld

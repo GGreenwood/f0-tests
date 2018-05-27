@@ -1,0 +1,85 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "cortex-debug",
+            "request": "launch",
+            "servertype": "stutil",
+            "preLaunchTask": "blinky-build",
+            "cwd": "${workspaceRoot}/blinky",
+            "executable": "blinky.elf",
+            "name": "stutil blinky",
+            "svdFile": "${workspaceRoot}/STM32F042x.svd",
+            "v1": false,
+            "runToMain": true
+        },
+        {
+            "type": "cortex-debug",
+            "request": "launch",
+            "servertype": "stutil",
+            "preLaunchTask": "systick-build",
+            "cwd": "${workspaceRoot}/systick",
+            "executable": "systick.elf",
+            "name": "stutil systick",
+            "svdFile": "${workspaceRoot}/STM32F042x.svd",
+            "v1": false,
+            "runToMain": true
+        },
+        {
+            "name": "blinky-debug",
+            "preLaunchTask": "blinky-build",
+            "type": "cortex-debug",
+            "request": "launch",
+            "servertype": "bmp",
+            "cwd": "${workspaceRoot}/blinky",
+            "svdFile": "${workspaceRoot}/STM32F042x.svd",
+            "executable": "blinky.elf",
+            "BMPGDBSerialPort": "/dev/ttyACM0",
+            "targetId": 1,
+            "postLaunchCommands": [
+                "load"
+            ],
+            "postRestartCommands": [
+                "load"
+            ],
+            "runToMain": true
+        },
+        {
+            "name": "systick-debug",
+            "preLaunchTask": "systick-build",
+            "type": "cortex-debug",
+            "request": "launch",
+            "servertype": "bmp",
+            "cwd": "${workspaceRoot}/systick",
+            "svdFile": "${workspaceRoot}/STM32F042x.svd",
+            "executable": "systick.elf",
+            "BMPGDBSerialPort": "/dev/ttyACM0",
+            "targetId": 1,
+            "postLaunchCommands": [
+                "load"
+            ],
+            "postRestartCommands": [
+                "load"
+            ],
+            "runToMain": true
+        },
+        {
+            "name": "BMPv2",
+            "type": "gdb",
+            "request": "attach",
+            "gdbpath": "arm-none-eabi-gdb",
+            "target": "extended-remote /dev/ttyACM0",
+            "cwd": "${workspaceRoot}/blinky",
+            "executable": "blinky.elf",
+            "autorun": [
+                "monitor tpwr enable",
+                "monitor swdp_scan",
+                "attach 1",
+                "load blinky.elf"
+            ]
+        }
+    ]
+}
