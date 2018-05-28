@@ -19,7 +19,8 @@
             "group": {
                 "kind": "build",
                 "isDefault": true
-            }
+            },
+            "problemMatcher": []
         },
         {
             "label": "systick-build",
@@ -31,13 +32,33 @@
             }
         },
         {
-            "label": "systick-build",
+            "label": "systick-flash",
             "type": "shell",
             "command": "cd systick && make flash",
             "group": {
                 "kind": "build",
                 "isDefault": true
             }
+        },
+        {
+            "label": "pwm-flash",
+            "type": "shell",
+            "command": "cd pwm && make flash",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "dma-pwm-flash",
+            "type": "shell",
+            "command": "cd dma-pwm && make flash",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
         }
     ]
 }

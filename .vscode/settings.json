@@ -1,4 +1,7 @@
 {
     "C_Cpp.intelliSenseEngine": "Default",
     "C_Cpp.intelliSenseEngineFallback": "Enabled",
+    "files.associations": {
+        "rcc.h": "c"
+    },
 }

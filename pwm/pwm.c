@@ -38,7 +38,7 @@ static void clock_setup(void) {
 
 static void gpio_setup(void) {
     // Set GPIO outputs
-    gpio_set_output_options(GPIOA, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, GPIO4);
+    gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO4);
 
     // Connect PA6 to its alternate function, TIM_CH1
     gpio_mode_setup(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO6);
@@ -78,15 +78,8 @@ int main(void)
     gpio_setup();
     timer_setup();
 
-    // Blink the LED (PA1)
-    gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO1);
-
     while (1) {
-        gpio_toggle(GPIOA, GPIO1);
-
-        for (i = 0; i < 3000000; i++) {
-            __asm__("nop");
-        }
+        gpio_toggle(GPIOA, GPIO4);
     }
 
     return 0;

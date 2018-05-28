@@ -26,7 +26,7 @@
 #include <unicore-mx/stm32/dma.h>
 #include <unicore-mx/cm3/nvic.h>
 
-uint16_t waveform[192] __attribute__((aligned(16)));
+uint8_t waveform[192];
 
 /**
  * Set STM32 to 48MHz, based on the interal HSI clock
@@ -34,29 +34,34 @@ uint16_t waveform[192] __attribute__((aligned(16)));
  * Sets the flash memory speed to FLASH_ACR_LATENCY_024_048MHZ
  */
 static void clock_setup(void) {
+    // Enable peripheral timers
+    rcc_periph_clock_enable(RCC_GPIOA);
+    rcc_periph_clock_enable(RCC_TIM3);
+    rcc_periph_clock_enable(RCC_DMA);
+
     rcc_clock_setup_in_hsi48_out_48mhz();
+
 }
 
 static void gpio_setup(void) {
-    rcc_periph_clock_enable(RCC_GPIOA);
-    gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO1);
+    gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO4);
+    gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO5);
     gpio_set_output_options(GPIOA, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, GPIO6);
 }
 
 static void pwm_setup(void) {
-    // Enable peripheral timers
-    rcc_periph_clock_enable(RCC_TIM3);
-
     // Connect PA6 to its alternate function, TIM_CH1
     gpio_mode_setup(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO6);
     gpio_set_af(GPIOA, GPIO_AF1, GPIO6);   // Set AF1(TIM3_CH1) of PA1
 
     // Set up TIM3
     timer_reset(TIM3);
-    timer_set_mode(TIM3,            // Operate on TIM3
-            TIM_CR1_CKD_CK_INT,     // No prescaling(Internal clock)
-            TIM_CR1_CMS_EDGE,       // Edge-aligned
-            TIM_CR1_DIR_UP);        // Up-counting
+    timer_set_mode(
+        TIM3,               // Operate on TIM3
+        TIM_CR1_CKD_CK_INT, // No prescaling(Internal clock)
+        TIM_CR1_CMS_EDGE,   // Edge-aligned
+        TIM_CR1_DIR_UP      // Up-counting
+    );
 
     // Set up TIM3 output modes
     timer_set_oc_mode(TIM3, TIM_OC1, TIM_OCM_PWM2);
@@ -75,37 +80,51 @@ static void pwm_setup(void) {
 }
 
 static void dma_setup(void) {
-    rcc_periph_clock_enable(RCC_DMA);
+    dma_channel_reset(DMA1, DMA_CHANNEL4);
+    //dma_enable_channel(DMA1, DMA_CHANNEL4);
 
-    dma_channel_reset(DMA1, DMA_CHANNEL1);
-    dma_set_priority(DMA1, DMA_CHANNEL1, DMA_CCR_PL_HIGH);
+    dma_channel_reset(DMA1, DMA_CHANNEL4);
+    dma_set_priority(DMA1, DMA_CHANNEL4, DMA_CCR_PL_HIGH);
 
-    dma_set_memory_size(DMA1, DMA_CHANNEL1, DMA_CCR_MSIZE_16BIT);
-    dma_set_peripheral_size(DMA1, DMA_CHANNEL1, DMA_CCR_MSIZE_16BIT);
-    dma_enable_memory_increment_mode(DMA1, DMA_CHANNEL1);
-    dma_enable_circular_mode(DMA1, DMA_CHANNEL1);
+    dma_set_memory_size(DMA1, DMA_CHANNEL4, DMA_CCR_MSIZE_8BIT);
+    dma_set_peripheral_size(DMA1, DMA_CHANNEL4, DMA_CCR_MSIZE_16BIT);
+    dma_enable_memory_increment_mode(DMA1, DMA_CHANNEL4);
+    dma_enable_circular_mode(DMA1, DMA_CHANNEL4);
 
-    dma_set_read_from_memory(DMA1, DMA_CHANNEL1);
+    dma_set_read_from_memory(DMA1, DMA_CHANNEL4);
 
-    dma_set_peripheral_address(DMA1, DMA_CHANNEL1, (uint32_t) &TIM3_CCR1);
-    dma_set_memory_address(DMA1, DMA_CHANNEL1, (uint32_t) waveform);
+    dma_set_peripheral_address(DMA1, DMA_CHANNEL4, (uint32_t) &TIM3_CCR1);
+    dma_set_memory_address(DMA1, DMA_CHANNEL4, (uint32_t) waveform);
 
-    dma_set_number_of_data(DMA1, DMA_CHANNEL1, 192);
+    dma_set_number_of_data(DMA1, DMA_CHANNEL4, 192);
 
-    //nvic_enable_irq(NVIC_DMA1_CHANNEL1_IRQ);
+    nvic_enable_irq(NVIC_DMA1_CHANNEL4_5_IRQ);
+    nvic_enable_irq(NVIC_TIM3_IRQ);
+    dma_enable_transfer_complete_interrupt(DMA1, DMA_CHANNEL4);
 
-    dma_enable_channel(DMA1, DMA_CHANNEL1);
+    // Enable DMA requests from TIM3
+    timer_enable_irq(TIM3, TIM_DIER_CC1DE);
+    timer_enable_irq(TIM3, TIM_DIER_CC1IE);
+    timer_set_dma_on_update_event(TIM3);
+
+    dma_enable_channel(DMA1, DMA_CHANNEL4);
 }
 
-void dma1_channel1_isr(void)
+void tim3_isr(void) {
+    timer_clear_flag(TIM3, TIM_SR_CC1IF);
+    /* Toggle PA4 just to keep aware of activity and frequency. */
+    gpio_toggle(GPIOA, GPIO4);
+}
+
+void dma1_channel4_5_isr(void)
 {
-    dma_clear_interrupt_flags(DMA1, DMA_CHANNEL1, DMA_TCIF);
-    /* Toggle PA1 just to keep aware of activity and frequency. */
-    gpio_toggle(GPIOA, GPIO1);
+    dma_clear_interrupt_flags(DMA1, DMA_CHANNEL4, DMA_TCIF);
+    /* Toggle PA5 just to keep aware of activity and frequency. */
+    gpio_toggle(GPIOA, GPIO5);
 }
 
 int main(void) {
-    int i;
+    uint8_t i;
 
     // Set up DMA waveform
     for(i = 0; i < 192; i++) {
@@ -118,6 +137,7 @@ int main(void) {
     dma_setup();
 
     while (1) {
+        //dma_clear_interrupt_flags(DMA1, DMA_CHANNEL4, DMA_TCIF);
     }
 
     return 0;
